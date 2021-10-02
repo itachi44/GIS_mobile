@@ -2,13 +2,21 @@ import 'dart:ui';
 import 'package:gisApp/helper/constants.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:gisApp/home.dart';
+import 'package:gisApp/main.dart';
 
 class SuccessDialogBox extends StatefulWidget {
   final String title, descriptions, text;
   final Image img;
+  final dynamic pageToGo;
 
   const SuccessDialogBox(
-      {Key key, this.title, this.descriptions, this.text, this.img})
+      {Key key,
+      this.title,
+      this.descriptions,
+      this.text,
+      this.img,
+      this.pageToGo = "/"})
       : super(key: key);
 
   @override
@@ -16,6 +24,16 @@ class SuccessDialogBox extends StatefulWidget {
 }
 
 class _SuccessDialogBoxState extends State<SuccessDialogBox> {
+  _getPage(dynamic page) {
+    switch (page) {
+      case "/home":
+        return (context) => HomePage();
+        break;
+      default:
+        return (context) => LoginPage();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Dialog(
@@ -69,7 +87,10 @@ class _SuccessDialogBoxState extends State<SuccessDialogBox> {
                 alignment: Alignment.bottomRight,
                 child: FlatButton(
                     onPressed: () {
-                      Navigator.pushNamed(context, "/");
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: _getPage(widget.pageToGo)));
                     },
                     child: Text(
                       widget.text,

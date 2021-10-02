@@ -11,7 +11,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:jwt_decode/jwt_decode.dart';
 
 //création de la session du user
-//TODO récupérer id_district : faire explode de la variable team puis faire un fetch vers l'API : prévoir l'URI pour ça
 Future getDistrict(context, codeDistrict, token) async {
   final response = await http.get(
       "http://localhost:8081/api/centroid?code_district=" + codeDistrict,
@@ -90,6 +89,8 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   String email, password;
+  dynamic recentReports;
+
   String emailLabelText = "E-mail", passwordLabelText = "Mot de passe";
   Widget _buildLogo() {
     return Row(
@@ -270,8 +271,7 @@ class _LoginPageState extends State<LoginPage> {
                         bool isLoggedIn = true;
                         print(decodedData);
                         String idUser = decodedData["id_user"];
-                        savePref(name, email, token, isLoggedIn,
-                            idUser); //TODO décommenter
+                        savePref(name, email, token, isLoggedIn, idUser);
                         Navigator.of(context).pushReplacement(MaterialPageRoute(
                             builder: (BuildContext context) => HomePage()));
                       } else {

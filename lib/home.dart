@@ -1,10 +1,44 @@
 import 'package:flutter/material.dart';
 import 'package:gisApp/main.dart';
 import 'package:gisApp/theme/color/light_color.dart';
+import 'package:gisApp/updateUser.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:gisApp/menuController.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:line_icons/line_icons.dart';
+import 'package:http/http.dart' as http;
+import 'package:jwt_decode/jwt_decode.dart';
+import 'dart:convert';
+
+Future getrecentReports(context, _token) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  _token = (prefs.getString('token') ?? '');
+  final response =
+      await http.get("http://localhost:8081/api/report?how=daily", headers: {
+    "Accept": "application/json",
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Headers": "*",
+    'Content-Type': 'application/json;charset=UTF-8',
+    'authorization': _token
+  });
+  Map<String, dynamic> data = jsonDecode(response.body);
+  return data;
+}
+
+Future getReport(context, idReport) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  dynamic token = (prefs.getString('token') ?? '');
+  final response = await http
+      .get("http://localhost:8081/api/report?id_report=" + idReport, headers: {
+    "Accept": "application/json",
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Headers": "*",
+    'Content-Type': 'application/json;charset=UTF-8',
+    'authorization': token
+  });
+  dynamic data = jsonDecode(response.body);
+  return data;
+}
 
 class HomePage extends StatefulWidget {
   @override
@@ -15,12 +49,15 @@ class _HomePageState extends State<HomePage> {
   String _name = "", _token = "";
   String _email = "";
   int _index = 0;
+  dynamic recentReports;
   double width;
+  dynamic reportInfos;
 
   @override
   void initState() {
     super.initState();
     userInfosLoader();
+    loadRecentReports();
   }
 
   void userInfosLoader() async {
@@ -30,6 +67,10 @@ class _HomePageState extends State<HomePage> {
       _email = (prefs.getString('email') ?? '');
       _token = (prefs.getString('token') ?? '');
     });
+  }
+
+  void loadRecentReports() async {
+    recentReports = await getrecentReports(context, _token);
   }
 
 //DEBUT PAGE HOME:
@@ -155,118 +196,73 @@ class _HomePageState extends State<HomePage> {
 
 //second row contenant les cards
   Widget _featuredRowB() {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Container(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          //TODO mettre une boucle
-          children: <Widget>[
-            _card(
-                primary: Colors.white,
-                backWidget: _decorationContainerB(
-                    LightColor.mainColor,
-                    MediaQuery.of(context).size.height / 17.92,
-                    -MediaQuery.of(context).size.height / 29.87),
-                chipColor: LightColor.mainColor,
-                chipText1: "Résumé",
-                chipText2: "Date: 2021-09-08",
-                chipText3: "plage: 2500-3000",
-                chipText4: "heure: 10h00-18h00",
-                iconTop: MediaQuery.of(context).size.height / 17.92,
-                iconLeft: MediaQuery.of(context).size.height / 4.48,
-                textCardBottom: MediaQuery.of(context).size.height / 12.8,
-                textCardLeft: MediaQuery.of(context).size.height / 29.87,
-                h: MediaQuery.of(context).size.height / 3.9,
-                w: MediaQuery.of(context).size.width * 0.7,
-                isPrimaryCard: true,
-                textColor: Colors.black,
-                isReport: true),
-            _card(
-                primary: Colors.white,
-                backWidget: _decorationContainerB(
-                    LightColor.mainColor,
-                    MediaQuery.of(context).size.height / 17.92,
-                    -MediaQuery.of(context).size.height / 29.87),
-                chipColor: LightColor.mainColor,
-                chipText1: "Résumé",
-                chipText2: "Date: 2021-09-08",
-                chipText3: "plage: 2500-3000",
-                chipText4: "heure: 10h00-18h00",
-                iconTop: MediaQuery.of(context).size.height / 17.92,
-                iconLeft: MediaQuery.of(context).size.height / 4.48,
-                textCardBottom: MediaQuery.of(context).size.height / 12.8,
-                textCardLeft: MediaQuery.of(context).size.height / 29.87,
-                h: MediaQuery.of(context).size.height / 3.9,
-                w: MediaQuery.of(context).size.width * 0.7,
-                isPrimaryCard: true,
-                textColor: Colors.black,
-                isReport: true),
-            _card(
-                primary: Colors.white,
-                backWidget: _decorationContainerB(
-                    LightColor.mainColor,
-                    MediaQuery.of(context).size.height / 17.92,
-                    -MediaQuery.of(context).size.height / 29.87),
-                chipColor: LightColor.mainColor,
-                chipText1: "Résumé",
-                chipText2: "Date: 2021-09-08",
-                chipText3: "plage: 2500-3000",
-                chipText4: "heure: 10h00-18h00",
-                iconTop: MediaQuery.of(context).size.height / 17.92,
-                iconLeft: MediaQuery.of(context).size.height / 4.48,
-                textCardBottom: MediaQuery.of(context).size.height / 12.8,
-                textCardLeft: MediaQuery.of(context).size.height / 29.87,
-                h: MediaQuery.of(context).size.height / 3.9,
-                w: MediaQuery.of(context).size.width * 0.7,
-                isPrimaryCard: true,
-                textColor: Colors.black,
-                isReport: true),
-            _card(
-                primary: Colors.white,
-                backWidget: _decorationContainerB(
-                    LightColor.mainColor,
-                    MediaQuery.of(context).size.height / 17.92,
-                    -MediaQuery.of(context).size.height / 29.87),
-                chipColor: LightColor.mainColor,
-                chipText1: "Résumé",
-                chipText2: "Date: 2021-09-08",
-                chipText3: "plage: 2500-3000",
-                chipText4: "heure: 10h00-18h00",
-                iconTop: MediaQuery.of(context).size.height / 17.92,
-                iconLeft: MediaQuery.of(context).size.height / 4.48,
-                textCardBottom: MediaQuery.of(context).size.height / 12.8,
-                textCardLeft: MediaQuery.of(context).size.height / 29.87,
-                h: MediaQuery.of(context).size.height / 3.9,
-                w: MediaQuery.of(context).size.width * 0.7,
-                isPrimaryCard: true,
-                textColor: Colors.black,
-                isReport: true),
-            _card(
-                primary: Colors.white,
-                backWidget: _decorationContainerB(
-                    LightColor.mainColor,
-                    MediaQuery.of(context).size.height / 17.92,
-                    -MediaQuery.of(context).size.height / 29.87),
-                chipColor: LightColor.mainColor,
-                chipText1: "Résumé",
-                chipText2: "Date: 2021-09-08",
-                chipText3: "plage: 2500-3000",
-                chipText4: "heure: 10h00-18h00",
-                iconTop: MediaQuery.of(context).size.height / 17.92,
-                iconLeft: MediaQuery.of(context).size.height / 4.48,
-                textCardBottom: MediaQuery.of(context).size.height / 12.8,
-                textCardLeft: MediaQuery.of(context).size.height / 29.87,
-                h: MediaQuery.of(context).size.height / 3.9,
-                w: MediaQuery.of(context).size.width * 0.7,
-                isPrimaryCard: true,
-                textColor: Colors.black,
-                isReport: true),
-          ],
+    if (recentReports["response"] == "pas de donnees") {
+      return SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Container(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: <Widget>[
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  Center(
+                      child: Text("Pas de données...",
+                          style: TextStyle(
+                              fontSize:
+                                  MediaQuery.of(context).size.height / 40))),
+                ],
+              )
+            ],
+          ),
         ),
-      ),
-    );
+      );
+    } else {
+      return SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Container(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: <Widget>[
+              for (var i = 0; i < recentReports["response"].length; i++)
+                _card(
+                    page: "seeReport",
+                    index: i,
+                    reportPage: true,
+                    idReport: recentReports["response"][i]["id_district_data"],
+                    primary: Colors.white,
+                    backWidget: _decorationContainerB(
+                        LightColor.mainColor,
+                        MediaQuery.of(context).size.height / 17.92,
+                        -MediaQuery.of(context).size.height / 29.87),
+                    chipColor: LightColor.mainColor,
+                    chipText1: "Résumé",
+                    chipText2: "Date: " + recentReports["response"][i]["date"],
+                    chipText3: "plage: " +
+                        recentReports["response"][i]["allocated_range"],
+                    chipText4: "heure: " +
+                        recentReports["response"][i]["starting_time"]
+                            .substring(0, 5) +
+                        "-" +
+                        recentReports["response"][i]["ending_time"]
+                            .substring(0, 5),
+                    iconTop: MediaQuery.of(context).size.height / 17.92,
+                    iconLeft: MediaQuery.of(context).size.height / 4.48,
+                    textCardBottom: MediaQuery.of(context).size.height / 12.8,
+                    textCardLeft: MediaQuery.of(context).size.height / 29.87,
+                    h: MediaQuery.of(context).size.height / 3.9,
+                    w: MediaQuery.of(context).size.width * 0.7,
+                    isPrimaryCard: true,
+                    textColor: Colors.black,
+                    isReport: true)
+            ],
+          ),
+        ),
+      );
+    }
   }
 
 //LES WIDGETS A MODIFIER : DEBUT
@@ -294,6 +290,22 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  void handleReportProcess(index, reportPage, page) async {
+    if (index != null) {
+      dynamic idReport = recentReports["response"][index]["id_district_data"];
+      getReport(context, idReport).then((response) {
+        dynamic data = response;
+        if (reportPage == true) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => MenuController(page, data, idReport)),
+          );
+        }
+      });
+    }
+  }
+
   Widget _card(
       {Color primary = Colors.redAccent,
       String imgPath,
@@ -303,6 +315,7 @@ class _HomePageState extends State<HomePage> {
       String chipText4 = '',
       double h,
       double w,
+      dynamic idReport,
       double iconTop,
       double iconLeft,
       Widget backWidget,
@@ -310,23 +323,24 @@ class _HomePageState extends State<HomePage> {
       bool isReport = false,
       double textCardBottom,
       double textCardLeft,
+      int index,
       Color textColor = Colors.white,
       Color chipColor = LightColor.orange,
+      bool reportPage = false,
       bool isPrimaryCard = false}) {
     return AnimatedContainer(
       duration: const Duration(seconds: 500),
       curve: Curves.easeIn,
       child: InkWell(
-        //les couleurs par défaut pour le comportement
-        // splashColor: Colors.transparent,
-        // highlightColor: Colors.transparent,
-        // hoverColor: Colors.transparent,
         onTap: () {
-          setState(() {});
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => MenuController(page)),
-          );
+          handleReportProcess(index, reportPage, page);
+          if (reportPage == false) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => MenuController(page, null, null)),
+            );
+          }
         },
         child: Container(
             height: h,
@@ -540,7 +554,6 @@ class _HomePageState extends State<HomePage> {
 
   Positioned _smallContainer(Color primary, double top, double left,
       {double radius = 10}) {
-    //TODO revoir le passage de paramètres pour toutes les instances
     return Positioned(
         top: top,
         left: left,
@@ -637,7 +650,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildLoginButton() {
+  Widget _buildUpdateButton() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
@@ -655,7 +668,10 @@ class _HomePageState extends State<HomePage> {
             onPressed: () {},
             child: InkWell(
               onTap: () {
-                //handle update process
+                Map<String, dynamic> userInfos = Jwt.parseJwt(_token);
+                dynamic idUser = userInfos["id_user"];
+                Navigator.of(context).push(MaterialPageRoute(
+                    builder: (BuildContext context) => UpdateUserPage(idUser)));
               },
               child: Row(
                 children: <Widget>[
@@ -783,7 +799,7 @@ class _HomePageState extends State<HomePage> {
                         ],
                       )),
                   SizedBox(height: 10),
-                  Flexible(child: _buildLoginButton()),
+                  Flexible(child: _buildUpdateButton()),
                   Flexible(child: _buildLogoutButton())
                 ],
               ),
@@ -829,18 +845,42 @@ class _HomePageState extends State<HomePage> {
 
 //FIN PAGE PROFILE:
 
-//TODO Ajouter d'autre container pour les autres pages
   Widget _chooseTheRightOne(int index) {
     switch (index) {
       case 0:
-        return _containerHome();
+        return FutureBuilder<dynamic>(
+            future: getrecentReports(context, _token),
+            builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
+              // AsyncSnapshot<Your object type>
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(child: Text('Please wait its loading...'));
+              } else {
+                if (snapshot.hasError)
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                else
+                  return _containerHome();
+              }
+            });
         break;
       case 1:
         return _profileContainer();
         break;
+      case 2:
+        return _defaultContainer();
+        break;
+      case 3:
+        return _defaultContainer();
       default:
         return null;
     }
+  }
+
+  Widget _defaultContainer() {
+    return Scaffold(
+        body: Center(
+            child: Text("Implémentation en cours",
+                style: TextStyle(
+                    fontSize: MediaQuery.of(context).size.height / 40))));
   }
 
   PageController controller = PageController();
