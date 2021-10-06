@@ -45,24 +45,6 @@ Future deleteReport(context, idReport, _token) async {
   return response;
 }
 
-Future updateReport(context, idReport, reportData, _token) async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  _token = (prefs.getString('token') ?? '');
-  final response =
-      await http.put("http://localhost:8081/api/report?id_report=" + idReport,
-          headers: {
-            "Accept": "application/json",
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Headers": "*",
-            'Content-Type': 'application/json;charset=UTF-8',
-            'authorization': _token
-          },
-          body: reportData,
-          encoding: Encoding.getByName("utf-8"));
-  Navigator.pop(context);
-  return response;
-}
-
 Future saveComment(context, commentData, _token) async {
   final response = await http.post("http://localhost:8081/api/comment",
       headers: {
@@ -797,7 +779,7 @@ class _MenuControllerState extends State<MenuController> {
               onTap: () {
                 Navigator.of(context).pushReplacement(MaterialPageRoute(
                     builder: (BuildContext context) =>
-                        UpdateReportPage(idReport)));
+                        UpdateReportPage(idReport, data)));
               },
               child: Row(
                 children: <Widget>[

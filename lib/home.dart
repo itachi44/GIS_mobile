@@ -8,6 +8,8 @@ import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:line_icons/line_icons.dart';
 import 'package:http/http.dart' as http;
 import 'package:jwt_decode/jwt_decode.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'dart:convert';
 
 Future getrecentReports(context, _token) async {
@@ -15,6 +17,20 @@ Future getrecentReports(context, _token) async {
   _token = (prefs.getString('token') ?? '');
   final response =
       await http.get("http://localhost:8081/api/report?how=daily", headers: {
+    "Accept": "application/json",
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Headers": "*",
+    'Content-Type': 'application/json;charset=UTF-8',
+    'authorization': _token
+  });
+  Map<String, dynamic> data = jsonDecode(response.body);
+  return data;
+}
+
+Future getAllReports(context) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  dynamic _token = (prefs.getString('token') ?? '');
+  final response = await http.get("http://localhost:8081/api/report", headers: {
     "Accept": "application/json",
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Headers": "*",
@@ -40,6 +56,36 @@ Future getReport(context, idReport) async {
   return data;
 }
 
+Future getuserInfos(context, idUser) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  dynamic _token = (prefs.getString('token') ?? '');
+  final response = await http
+      .get("http://localhost:8081/api/user?id_user=" + idUser, headers: {
+    "Accept": "application/json",
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Headers": "*",
+    'Content-Type': 'application/json;charset=UTF-8',
+    'Authorization': _token
+  });
+  dynamic data = jsonDecode(response.body);
+  return data;
+}
+
+Future getUserTeam(context, idTeam) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  dynamic _token = (prefs.getString('token') ?? '');
+  final response = await http
+      .get("http://localhost:8081/api/team?id_team=" + idTeam, headers: {
+    "Accept": "application/json",
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Headers": "*",
+    'Content-Type': 'application/json;charset=UTF-8',
+    'authorization': _token
+  });
+  dynamic data = jsonDecode(response.body);
+  return data;
+}
+
 class HomePage extends StatefulWidget {
   @override
   _HomePageState createState() => _HomePageState();
@@ -48,16 +94,19 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   String _name = "", _token = "";
   String _email = "";
+  dynamic _telephone;
   int _index = 0;
   dynamic recentReports;
   double width;
   dynamic reportInfos;
-
+  dynamic allReports;
+  List<dynamic> initItems = List<dynamic>();
   @override
   void initState() {
     super.initState();
     userInfosLoader();
     loadRecentReports();
+    loadAllReports();
   }
 
   void userInfosLoader() async {
@@ -67,10 +116,18 @@ class _HomePageState extends State<HomePage> {
       _email = (prefs.getString('email') ?? '');
       _token = (prefs.getString('token') ?? '');
     });
+    Map<String, dynamic> userInfos = Jwt.parseJwt(_token);
+    setState(() {
+      _telephone = userInfos["telephone"];
+    });
   }
 
   void loadRecentReports() async {
     recentReports = await getrecentReports(context, _token);
+  }
+
+  void loadAllReports() async {
+    allReports = await getAllReports(context);
   }
 
 //DEBUT PAGE HOME:
@@ -619,6 +676,21 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  Widget _buildPhoneRow() {
+    return Container(
+      padding: EdgeInsets.all(MediaQuery.of(context).size.height / 112),
+      child: _chip(
+          "Telephone : " + _telephone,
+          LightColor.mainColor,
+          Color(0xff1e3799),
+          MediaQuery.of(context).size.height / 40,
+          Alignment.centerLeft,
+          false,
+          height: MediaQuery.of(context).size.height / 74.7,
+          isPrimaryCard: true),
+    );
+  }
+
   Widget _buildNameRow() {
     return Padding(
       padding: EdgeInsets.all(MediaQuery.of(context).size.height / 112),
@@ -667,11 +739,17 @@ class _HomePageState extends State<HomePage> {
             ),
             onPressed: () {},
             child: InkWell(
-              onTap: () {
+              onTap: () async {
                 Map<String, dynamic> userInfos = Jwt.parseJwt(_token);
                 dynamic idUser = userInfos["id_user"];
+                dynamic userData = await getuserInfos(context, idUser);
+                dynamic idTeam = userData["response"]["id_team"];
+                dynamic userTeam = await getUserTeam(context, idTeam);
+                showloginSpinner(context);
+                Navigator.of(context).pop();
                 Navigator.of(context).push(MaterialPageRoute(
-                    builder: (BuildContext context) => UpdateUserPage(idUser)));
+                    builder: (BuildContext context) =>
+                        UpdateUserPage(idUser, userData, userTeam)));
               },
               child: Row(
                 children: <Widget>[
@@ -762,7 +840,7 @@ class _HomePageState extends State<HomePage> {
               Radius.circular(20),
             ),
             child: Container(
-              height: MediaQuery.of(context).size.height * 0.4,
+              height: MediaQuery.of(context).size.height * 0.5,
               width: MediaQuery.of(context).size.width * 0.8,
               decoration: BoxDecoration(
                 color: Colors.white,
@@ -796,6 +874,7 @@ class _HomePageState extends State<HomePage> {
                         children: <Widget>[
                           _buildEmailRow(),
                           _buildNameRow(),
+                          _buildPhoneRow()
                         ],
                       )),
                   SizedBox(height: 10),
@@ -845,6 +924,17 @@ class _HomePageState extends State<HomePage> {
 
 //FIN PAGE PROFILE:
 
+//fonction test
+  bool isInside(initItems, item) {
+    bool state = false;
+    for (var i = 0; i < initItems.length; i++) {
+      if (initItems[i] == item) {
+        state = true;
+      }
+    }
+    return state;
+  }
+
   Widget _chooseTheRightOne(int index) {
     switch (index) {
       case 0:
@@ -866,13 +956,131 @@ class _HomePageState extends State<HomePage> {
         return _profileContainer();
         break;
       case 2:
-        return _defaultContainer();
+        return FutureBuilder<dynamic>(
+            future: getAllReports(context),
+            builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
+              // AsyncSnapshot<Your object type>
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(child: Text('Please wait its loading...'));
+              } else {
+                if (snapshot.hasError)
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                else {
+                  if (allReports["response"].length >= 8) {
+                    for (var i = 0; i < 8; i++) {
+                      if (!isInside(initItems, allReports["response"][i])) {
+                        initItems.add(allReports["response"][i]);
+                      }
+                    }
+                  } else {
+                    for (var i = 0; i < allReports["response"].length; i++) {
+                      if (!isInside(initItems, allReports["response"][i])) {
+                        initItems.add(allReports["response"][i]);
+                      }
+                    }
+                  }
+                  return _reportsListPage();
+                }
+              }
+            });
         break;
       case 3:
         return _defaultContainer();
       default:
         return null;
     }
+  }
+//PAGE REPORTS LIST
+
+  RefreshController _refreshController =
+      RefreshController(initialRefresh: false);
+
+  void _onRefresh() async {
+    // monitor network fetch
+    await Future.delayed(Duration(milliseconds: 1000));
+    // if failed,use refreshFailed()
+    _refreshController.refreshCompleted();
+  }
+
+  void _onLoading() async {
+    // monitor network fetch
+    await Future.delayed(Duration(milliseconds: 1000));
+    // if failed,use loadFailed(),if no data return,use LoadNodata()
+    //ajouter un nouvel élément
+    if (allReports["response"].length < initItems.length) {
+      initItems.add((allReports["response"][initItems.length]));
+      if (mounted) setState(() {});
+      _refreshController.loadComplete();
+    }
+  }
+
+  Widget _reportsListPage() {
+    return SafeArea(
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text("Tous les rapports"),
+          leading: new IconButton(
+            icon: new Icon(Icons.arrow_back_ios),
+            onPressed: () {
+              Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (context) => HomePage()),
+                  (Route<dynamic> route) => false);
+            },
+          ),
+        ),
+        body: Container(
+          child: SmartRefresher(
+            enablePullDown: true,
+            enablePullUp: true,
+            header: WaterDropHeader(),
+            footer: CustomFooter(
+              builder: (BuildContext context, LoadStatus mode) {
+                Widget body;
+                if (mode == LoadStatus.idle) {
+                  body = Text("Tirez vers le haut pour charger");
+                } else if (mode == LoadStatus.loading) {
+                  body = CupertinoActivityIndicator();
+                } else if (mode == LoadStatus.failed) {
+                  body = Text("Echec du chargement! cliquer pour recommencer");
+                } else if (mode == LoadStatus.canLoading) {
+                  body = Text("libérez pour charger plus");
+                } else {
+                  body = Text("plus de données");
+                }
+                return Container(
+                  height: 55.0,
+                  child: Center(child: body),
+                );
+              },
+            ),
+            controller: _refreshController,
+            onRefresh: _onRefresh,
+            onLoading: _onLoading,
+            child: ListView.builder(
+              itemBuilder: (c, i) => Container(
+                child: InkWell(
+                  onTap: () {
+                    dynamic idReport = initItems[i]["id_district_data"];
+                    dynamic data = {"response": initItems[i]};
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) =>
+                              MenuController("seeReport", data, idReport)),
+                    );
+                  },
+                  child: Card(
+                      child: Center(
+                          child: Text("Rapport du : " + initItems[i]["date"]))),
+                ),
+              ),
+              itemExtent: 100.0,
+              itemCount: initItems.length,
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _defaultContainer() {
