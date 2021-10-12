@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:gisApp/helper/error_dialog.dart';
 import 'package:gisApp/helper/success_dialog.dart';
+import 'package:gisApp/resetPassword.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:jwt_decode/jwt_decode.dart';
@@ -47,7 +48,7 @@ Future connectUser(context, userData) async {
       },
       body: userData,
       encoding: Encoding.getByName("utf-8"));
-  //fermer le modal de chargement
+  //fermer le  de chargement
   Navigator.pop(context);
   return response; //ici on retourne la réponse de la requête
 }
@@ -207,9 +208,17 @@ class _LoginPageState extends State<LoginPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         FlatButton(
-          onPressed: () {},
-          child:
-              Text("Mot de passe oublié ?", style: TextStyle(color: mainColor)),
+          onPressed: () {
+            Navigator.of(context).push(MaterialPageRoute(
+                builder: (BuildContext context) => ResetPasswordPage()));
+          },
+          child: InkWell(
+              onTap: () {
+                Navigator.of(context).push(MaterialPageRoute(
+                    builder: (BuildContext context) => ResetPasswordPage()));
+              },
+              child: Text("Mot de passe oublié ?",
+                  style: TextStyle(color: mainColor))),
         ),
       ],
     );

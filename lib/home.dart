@@ -968,13 +968,15 @@ class _HomePageState extends State<HomePage> {
                 else {
                   if (allReports["response"].length >= 8) {
                     for (var i = 0; i < 8; i++) {
-                      if (!isInside(initItems, allReports["response"][i])) {
+                      if (!isInside(initItems, allReports["response"][i]) &&
+                          allReports["response"] != "pas de donnees") {
                         initItems.add(allReports["response"][i]);
                       }
                     }
                   } else {
                     for (var i = 0; i < allReports["response"].length; i++) {
-                      if (!isInside(initItems, allReports["response"][i])) {
+                      if (!isInside(initItems, allReports["response"][i]) &&
+                          allReports["response"] != "pas de donnees") {
                         initItems.add(allReports["response"][i]);
                       }
                     }
@@ -1015,6 +1017,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _reportsListPage() {
+    print(initItems);
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
