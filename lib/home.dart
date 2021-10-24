@@ -892,7 +892,7 @@ class _HomePageState extends State<HomePage> {
   Widget _profileContainer() {
     return SafeArea(
       child: Scaffold(
-        resizeToAvoidBottomPadding: false,
+        resizeToAvoidBottomInset: false,
         backgroundColor: Color(0xfff2f3f7),
         body: ListView(
           children: <Widget>[

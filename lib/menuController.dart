@@ -657,7 +657,7 @@ class _MenuControllerState extends State<MenuController> {
   Widget _reportPage(dynamic data) {
     return SafeArea(
       child: Scaffold(
-        resizeToAvoidBottomPadding: false,
+        resizeToAvoidBottomInset: false,
         backgroundColor: Color(0xfff2f3f7),
         body: ListView(
           children: <Widget>[
